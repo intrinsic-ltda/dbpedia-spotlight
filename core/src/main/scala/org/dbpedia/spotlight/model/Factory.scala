@@ -58,14 +58,30 @@ object Factory {
         }
         def fromDBpediaResourceURI(uri: String, lowerCased: Boolean): SurfaceForm = {
             // decode URI and truncate trailing parentheses
-            val name = WikiUtil.wikiDecode(uri).replaceAll(""" \(.+?\)$""", "")
-            fromString(if (lowerCased) name.toLowerCase else name)
+            val nameArray = uri.split("/")
+            if (nameArray.length == 0) {
+              val name = WikiUtil.wikiDecode(uri).replaceAll(""" \(.+?\)$""", "")
+              fromString(if (lowerCased) name.toLowerCase else name)
+            } else {
+              val name = WikiUtil.wikiDecode(nameArray.last).replaceAll(""" \(.+?\)$""", "")
+              fromString(if (lowerCased) name.toLowerCase else name)
+            }
         }
         def fromDBpediaResourceURI(resource: DBpediaResource, lowerCased: Boolean): SurfaceForm = {
             fromDBpediaResourceURI(resource.uri, lowerCased)
         }
         def fromWikiPageTitle(pageTitle: String, lowerCased: Boolean): SurfaceForm = {
             fromDBpediaResourceURI(pageTitle, lowerCased)
+        }
+
+        def fromOtherResourceURI(uri: String, lowerCased: Boolean): SurfaceForm = {
+            val nameArray = uri.split("/")
+            if (nameArray.length == 0) {
+              fromString(if (lowerCased) uri.toLowerCase else uri)
+            } else {
+              val name = nameArray.last.replaceAll(""" \(.+?\)$""", "")
+              fromString(if (lowerCased) name.toLowerCase else name)
+            }
         }
     }
 

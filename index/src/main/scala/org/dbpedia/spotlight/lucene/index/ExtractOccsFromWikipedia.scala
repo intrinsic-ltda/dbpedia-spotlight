@@ -21,10 +21,10 @@ package org.dbpedia.spotlight.lucene.index
 import java.io.File
 import org.dbpedia.spotlight.log.SpotlightLog
 import org.dbpedia.spotlight.string.ContextExtractor
-import org.dbpedia.spotlight.util.IndexingConfiguration
+import org.dbpedia.spotlight.util.{MergeOccsURI, IndexingConfiguration}
 import org.dbpedia.spotlight.filter.occurrences.{RedirectResolveFilter, UriWhitelistFilter, ContextNarrowFilter}
 import org.dbpedia.spotlight.io._
-import org.dbpedia.spotlight.model.DBpediaResourceOccurrence
+import org.dbpedia.spotlight.model.{SpotlightConfiguration, DBpediaResourceOccurrence}
 import org.dbpedia.spotlight.BzipUtils
 import org.dbpedia.extraction.util.Language
 
@@ -46,6 +46,8 @@ object ExtractOccsFromWikipedia {
     def main(args : Array[String]) {
         val indexingConfigFileName = args(0)
         val targetFileName = args(1)
+        var mergeWithOtherOntology = false
+        if (args.length == 3) mergeWithOtherOntology = args(2).toBoolean
 
         val config = new IndexingConfiguration(indexingConfigFileName)
         var wikiDumpFileName    = config.get("org.dbpedia.spotlight.data.wikipediaDump")
@@ -55,6 +57,10 @@ object ExtractOccsFromWikipedia {
         val minContextWindowSize  = config.get("org.dbpedia.spotlight.data.minContextWindowSize").toInt
         val languageCode = config.get("org.dbpedia.spotlight.language_i18n_code")
 
+        if (languageCode != "" || languageCode != "en") {
+          val strHelper = new StringBuilder(SpotlightConfiguration.DEFAULT_NAMESPACE)
+          SpotlightConfiguration.DEFAULT_NAMESPACE = strHelper.insert(7, languageCode + """.""").toString()
+        }
 
         if (wikiDumpFileName.endsWith(".bz2")) {
             SpotlightLog.warn(this.getClass, "The DBpedia Extraction Framework does not support parsing from bz2 files. You can stop here, decompress and restart the process with an uncompressed XML.")
@@ -71,7 +77,7 @@ object ExtractOccsFromWikipedia {
 
         val filters = (conceptUriFilter :: redirectResolver :: contextNarrowFilter :: Nil)
 
-        val occSource : Traversable[DBpediaResourceOccurrence] = AllOccurrenceSource.fromXMLDumpFile(new File(wikiDumpFileName), Language(languageCode))
+        val occSource : Traversable[DBpediaResourceOccurrence] = AllOccurrenceSource.fromXMLDumpFile(new File(wikiDumpFileName), Language(languageCode), false, config)
         //val filter = new OccurrenceFilter(redirectsTC = redirectsTCMap, conceptURIs = conceptUrisSet, contextExtractor = narrowContext)
         //val occs = filter.filter(occSource)
 
@@ -80,6 +86,8 @@ object ExtractOccsFromWikipedia {
         FileOccurrenceSource.writeToFile(occs, new File(targetFileName))
 
         SpotlightLog.info(this.getClass, "Occurrences saved to: %s", targetFileName)
+
+        MergeOccsURI.mergeUsingOccs(config.get("org.dbpedia.spotlight.data.mapToOtherOntology"), targetFileName, targetFileName + ".FINAL")
 
     }
 }

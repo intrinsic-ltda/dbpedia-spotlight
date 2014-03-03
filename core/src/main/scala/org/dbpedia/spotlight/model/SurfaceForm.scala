@@ -61,4 +61,8 @@ class SurfaceForm(var name : String) extends Serializable
   }
 
   override def toString = "SurfaceForm["+name+"]"
+
+  def setName(newName: String) {
+    name = newName
+  }
 }

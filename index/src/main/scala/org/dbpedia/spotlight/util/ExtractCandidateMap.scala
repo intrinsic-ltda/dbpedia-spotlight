@@ -76,7 +76,7 @@ object ExtractCandidateMap
         for (fileName <- List(redirectsFileName, disambiguationsFileName)) {
             val input = new BZip2CompressorInputStream(new FileInputStream(fileName),true)
             for(triple <- new NxParser(input)) {
-                val badUri = triple(0).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
+                val badUri = triple(0).toString
                 badURIs += badUri
                 badURIStream.println(badUri)
             }
@@ -90,7 +90,7 @@ object ExtractCandidateMap
         val parser = new NxParser(titlesInputStream)
         while (parser.hasNext) {
             val triple = parser.next
-            val uri = triple(0).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
+            val uri = triple(0).toString
             if (looksLikeAGoodURI(uri) && !badURIs.contains(uri))
                 conceptURIStream.println(uri)
         }
@@ -103,9 +103,6 @@ object ExtractCandidateMap
     }
 
     private def looksLikeAGoodURI(uri : String) : Boolean = {
-        // cannot contain a slash (/)
-        if (uri contains "/")
-            return false
         // cannot contain a hash (#)
         if (uri contains "%23") //TODO re-evaluate this decision in context of DBpedia 3.7
             return false
@@ -138,8 +135,8 @@ object ExtractCandidateMap
         val parser = new NxParser(redirectsInput)
         while (parser.hasNext) {
             val triple = parser.next
-            val subj = triple(0).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
-            val obj = triple(2).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
+            val subj = triple(0).toString
+            val obj = triple(2).toString
             linkMap = linkMap.updated(subj, obj)
         }
         redirectsInput.close()
@@ -178,6 +175,7 @@ object ExtractCandidateMap
         if ("""^[\W\d]+$""".r.findFirstIn(surfaceForm) != None) {
             return false
         }
+
         // not an escaped char. see http://sourceforge.net/mailarchive/message.php?msg_id=28908255
         if ("""\\\w""".r.findFirstIn(surfaceForm) != None) {
             return false
@@ -223,8 +221,8 @@ object ExtractCandidateMap
             val parser = new NxParser(input)
             while (parser.hasNext) {
                 val triple = parser.next
-                val surfaceFormUri = triple(0).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
-                val uri = triple(2).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
+                val surfaceFormUri = triple(0).toString
+                val uri = triple(2).toString
 
                 if (conceptURIs contains uri) {
                     getCleanSurfaceForm(surfaceFormUri, stopWords, lowerCased) match {
@@ -273,8 +271,8 @@ object ExtractCandidateMap
             val parser = new NxParser(input)
             while (parser.hasNext) {
                 val triple = parser.next
-                val subj = triple(0).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
-                val obj = triple(2).toString.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
+                val subj = triple(0).toString
+                val obj = triple(2).toString
                 linkMap = linkMap.updated(obj, linkMap.get(obj).getOrElse(List[String]()) ::: List(subj))
             }
             input.close()
@@ -292,7 +290,7 @@ object ExtractCandidateMap
                 }
                 // get all redirects and disambiguations that link to the last URI
                 // take care that there are no loops
-                var linksList = linkMap.get(linkedUris.head).getOrElse(List[String]()).filterNot(cyclePrevention contains _)
+                val linksList = linkMap.get(linkedUris.head).getOrElse(List[String]()).filterNot(cyclePrevention contains _)
 
                 // add links that point here
                 linkedUris = linkedUris.tail ::: linksList
@@ -304,7 +302,7 @@ object ExtractCandidateMap
             }
         }
 
-        surfaceFormsStream.close
+        surfaceFormsStream.close()
         SpotlightLog.info(this.getClass, "Done.")
 //        surfaceFormsFileName = surfaceFormsFile.getAbsolutePath
 //        IndexConfiguration.set("surfaceForms", surfaceFormsFileName)
@@ -312,7 +310,13 @@ object ExtractCandidateMap
 
     // Returns a cleaned surface form if it is considered to be worth keeping
     def getCleanSurfaceForm(surfaceForm : String, stopWords : Set[String], lowerCased : Boolean=false) : Option[String] = {
-        val cleanedSurfaceForm = Factory.SurfaceForm.fromWikiPageTitle(surfaceForm, lowerCased).name
+        var cleanedSurfaceForm = ""
+      //println(surfaceForm)
+        if (surfaceForm contains "dbpedia.org/resource") {
+          cleanedSurfaceForm = Factory.SurfaceForm.fromWikiPageTitle(surfaceForm, lowerCased).name
+        } else {
+          cleanedSurfaceForm = Factory.SurfaceForm.fromOtherResourceURI(surfaceForm, lowerCased).name
+        }
         if (isGoodSurfaceForm(cleanedSurfaceForm, stopWords)) Some(cleanedSurfaceForm) else None
     }
 
@@ -324,7 +328,7 @@ object ExtractCandidateMap
         val separator = "\t"
 
         val tsvScanner = new Scanner(new FileInputStream(surrogatesFile), "UTF-8")
-        for(line <- Source.fromFile(surrogatesFile, "UTF-8").getLines) {
+        for(line <- Source.fromFile(surrogatesFile, "UTF-8").getLines()) {
             val el = tsvScanner.nextLine.split(separator)
             val sf = if (lowerCased) new SurfaceForm(el(0).toLowerCase) else new SurfaceForm(el(0))
             val uri = el(1)
@@ -348,7 +352,7 @@ object ExtractCandidateMap
 
         for (line <- Source.fromFile(surfaceFormsFileName, "UTF-8").getLines) {
             val elements = line.split("\t")
-            val subj = new Resource(SpotlightConfiguration.DEFAULT_NAMESPACE+elements(1))
+            val subj = new Resource(elements(1))
             val obj = new Literal(elements(0), "lang=" + SpotlightConfiguration.DEFAULT_LANGUAGE_I18N_CODE, Literal.STRING)
             val triple = new Triple(subj, predicate, obj)
             ntStream.println(triple.toN3)
@@ -371,7 +375,7 @@ object ExtractCandidateMap
 
         for (line <- Source.fromFile(surfaceFormsFileName, "UTF-8").getLines) {
             val elements = line.split("\t")
-            val subj = new Resource(SpotlightConfiguration.DEFAULT_NAMESPACE+elements(1))
+            val subj = new Resource(elements(1))
             val obj = new Resource("http://lexvo.org/id/term/"+langString+"/"+WikiUtil.wikiEncode(elements(0)))
             val triple = new Triple(subj, predicate, obj)
             ntStream.println(triple.toN3)
@@ -411,10 +415,10 @@ object ExtractCandidateMap
         val stopWords = Source.fromFile(stopWordsFileName, "UTF-8").getLines.toSet
 
         // get concept URIs
-        saveConceptURIs
+        //saveConceptURIs
 
         // get redirects
-        saveRedirectsTransitiveClosure
+        //saveRedirectsTransitiveClosure
 
         // get "clean" surface forms, i.e. the ones obtained from TRDs
         saveSurfaceForms(stopWords)

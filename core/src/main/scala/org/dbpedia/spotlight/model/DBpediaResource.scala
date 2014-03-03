@@ -30,9 +30,10 @@ class DBpediaResource(var uri : String,
 
     require(uri != null)
 
-    uri = uri.replace(SpotlightConfiguration.DEFAULT_NAMESPACE, "")
-
-    uri = if (isEncoded(uri)) uri else WikiUtil.wikiEncode(uri)
+    if (!uri.contains("/")) {
+      uri = SpotlightConfiguration.DEFAULT_NAMESPACE + uri
+    }
+    //uri = if (isEncoded(uri)) uri else WikiUtil.wikiEncode(uri)
 
     def this(uri : String) = {
         this(uri, 0, 0.0, List[OntologyType]())
@@ -76,6 +77,10 @@ class DBpediaResource(var uri : String,
 
     def getTypes : java.util.List[OntologyType] = types
 
+    def setUri(newUriName: String) {
+      uri = newUriName
+    }
+
     override def toString = {
         val typesString = if (types!=null && types.nonEmpty) types.filter(_!=null).filter(_.typeID!=null).map(_.typeID).mkString("(", ",", ")") else ""
 
@@ -94,11 +99,11 @@ class DBpediaResource(var uri : String,
     }
 
     def getFullUri = {
-        if (isExternalURI) {
-            uri
-        } else {
-            SpotlightConfiguration.DEFAULT_NAMESPACE + uri
-        }
+      if (isExternalURI) {
+        uri
+      } else {
+        SpotlightConfiguration.DEFAULT_NAMESPACE + uri
+      }
     }
 
   // heuristic!!

@@ -111,6 +111,17 @@
                             </args-->
                         </launcher>
                         <launcher>
+                            <id>MergeOccsURI</id>
+                            <mainClass>org.dbpedia.spotlight.util.MergeOccsURI</mainClass>
+                            <!--args>
+                                <arg>/data/spotlight/enwiki-20101011-resolved-concepts.uriSorted.tsv</arg>
+                                <arg>/home/pablo/Projects/DBpediaSpotlight/IavorJelev/uri_pairs/Politics2_uri_pairs.txt</arg>
+                            </args-->
+                            <jvmArgs>
+                                <jvmArg>-Xmx${javaOpts.Xmx}</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <launcher>
                             <id>AddTypesToIndex</id>
                             <mainClass>org.dbpedia.spotlight.lucene.index.AddTypesToIndex</mainClass>
                             <jvmArgs>
