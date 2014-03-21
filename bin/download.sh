@@ -33,7 +33,7 @@ DBPEDIA_DOWNLOADS="http://downloads.dbpedia.org"/$dbpedia_version
 SPOTLIGHT_DOWNLOADS="http://spotlight.dbpedia.org/download/release-0.5"
 GITHUB_DOWNLOADS1="--no-check-certificate https://raw.github.com/sandroacoelho/lucene-quickstarter/4a6f571d06ab5ebb303f96eb9e6ad84e9cdd0425"
 GITHUB_DOWNLOADS2="--no-check-certificate https://raw.github.com/dbpedia-spotlight/dbpedia-spotlight/release-"$RELEASE_VERSION"/dist/src/deb/control/data/usr/share/dbpedia-spotlight"
-WIKIMEDIA_DOWNLOADS="http://dumps.wikimedia.org/"$lang_i18n"wiki/latest"
+WIKIMEDIA_DOWNLOADS="http://dumps.wikimedia.org/ptwiki/20131005"
 
 #+------------------------------------------------------------------------------------------------------------------------------+
 #| Functions                                                                                                                    |
@@ -183,8 +183,10 @@ download_file $DBPEDIA_DOWNLOADS/$lang_i18n disambiguations_$lang_i18n.nt.bz2 $D
 download_file $DBPEDIA_DOWNLOADS/$lang_i18n instance_types_$lang_i18n.nt.bz2 $DBPEDIA_DATA/$lang_i18n
 
 echo "Getting Wikipedia Dump..."
-download_file $WIKIMEDIA_DOWNLOADS $lang_i18n"wiki-latest-pages-articles.xml.bz2" $WIKIPEDIA_DATA/$lang_i18n
-bunzip2 -fk $WIKIPEDIA_DATA/$lang_i18n/$lang_i18n"wiki-latest-pages-articles.xml.bz2" > $WIKIPEDIA_DATA/$lang_i18n/$lang_i18n"wiki-latest-pages-articles.xml"
+download_file $WIKIMEDIA_DOWNLOADS $lang_i18n"wiki-20131005-pages-articles.xml.bz2" $WIKIPEDIA_DATA/$lang_i18n
+bunzip2 -fk $WIKIPEDIA_DATA/$lang_i18n/$lang_i18n"wiki-20131005-pages-articles.xml.bz2" > $WIKIPEDIA_DATA/$lang_i18n/$lang_i18n"wiki-latest-pages-articles.xml"
+#download_file $WIKIMEDIA_DOWNLOADS $lang_i18n"wiki-latest-pages-articles.xml.bz2" $WIKIPEDIA_DATA/$lang_i18n
+#bunzip2 -fk $WIKIPEDIA_DATA/$lang_i18n/$lang_i18n"wiki-latest-pages-articles.xml.bz2" > $WIKIPEDIA_DATA/$lang_i18n/$lang_i18n"wiki-latest-pages-articles.xml"
 
 echo "Getting CoOccurrenceBased Spot Selector Statistics..."
 download_file $GITHUB_DOWNLOADS2 "spotter.dict" $RESOURCES_DATA

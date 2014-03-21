@@ -5,12 +5,17 @@
 #
 # @author maxjakob, pablomendes
 
-export DBPEDIA_WORKSPACE=/usr/local/spotlight/dbpedia_data
+# Windows workspace path example
+#export dbpedia_workspace="E:/Spotlight"
 
-export INDEX_CONFIG_FILE=../conf/indexing.properties
+# Linux workspace path example
+export DBPEDIA_WORKSPACE="/home/ubuntu/Spotlight"
 
-JAVA_XMX=14g
+export INDEX_CONFIG_FILE="../conf/indexing.properties"
+export GLOBO_WORKSPACE=$1
+export LANGUAGE=$2
 
+JAVA_XMX=12g
 
 # you have to run maven2 from the module that contains the indexing classes
 cd ../index
@@ -28,9 +33,13 @@ mvn scala:run -Dlauncher=ExtractCandidateMap "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddAr
 echo -e "Parsing Wikipedia dump to extract occurrences...\n"
 mvn scala:run -Dlauncher=ExtractOccsFromWikipedia "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$INDEX_CONFIG_FILE|$DBPEDIA_WORKSPACE/data/output/occs.tsv"
 
+# modifying URIs from DBpedia to Globo
+mvn scala:run -Dlauncher=MergeOccsURI "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$GLOBO_WORKSPACE/output/globo_final_map_dbpedia.nt|$DBPEDIA_WORKSPACE/data/output/occs.tsv|$DBPEDIA_WORKSPACE/data/output/occs_final.tsv"
+
+
 # (recommended) sorting the occurrences by URI will speed up context merging during indexing
 echo -e "Sorting occurrences to speed up indexing...\n"
-sort -t$'\t' -k2 $DBPEDIA_WORKSPACE/data/output/occs.tsv >$DBPEDIA_WORKSPACE/data/output/occs.uriSorted.tsv
+sort -t$'\t' -k2 $DBPEDIA_WORKSPACE/data/output/occs_final.tsv >$ DBPEDIA_WORKSPACE/data/output/occs.uriSorted.tsv
 
 # (optional) preprocess surface forms however you want: produce acronyms, abbreviations, alternative spellings, etc.
 #            in the example below we scan paragraphs for uri->sf mappings that occurred together more than 3 times.
@@ -40,7 +49,7 @@ sort $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromOccs.tsv | uniq -c > $DBPED
 grep -Pv "      [123] " $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromOccs.count | sed -r "s|\s+[0-9]+\s(.+)|\1|" > $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromOccs-thresh3.tsv
 
 cp $DBPEDIA_WORKSPACE/data/output/surfaceForms.tsv $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromTitRedDis.tsv
-cat $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromTitRedDis.tsv $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromOccs.tsv > $DBPEDIA_WORKSPACE/data/output/surfaceForms.tsv
+cat $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromTitRedDis.tsv $DBPEDIA_WORKSPACE/data/output/surfaceForms-fromOccs.tsv $GLOBO_WORKSPACE/output/surfaceForms-fromLabels-globo.tsv $GLOBO_WORKSPACE/output/surfaceForms-fromOccs-globo.tsv > $DBPEDIA_WORKSPACE/data/output/surfaceForms.tsv
 
 # now that we have our set of surfaceForms, we can build a simple dictionary-based spotter from them
 mvn scala:run -Dlauncher=IndexLingPipeSpotter "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$INDEX_CONFIG_FILE"
@@ -60,11 +69,17 @@ echo -e "Adding Surface Forms to index...\n"
 # or
  mvn scala:run -Dlauncher=CandidateIndexer "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$DBPEDIA_WORKSPACE/data/output/surfaceForms.tsv|$DBPEDIA_WORKSPACE/data/output/candidateIndex|3|case-insensitive|overwrite"
 
+bunzip2 $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_pt.nt.bz2
+cp $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_pt.nt $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_db.nt
+cat $GLOBO_WORKSPACE/output/instance_types_globo.nt $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_db.nt > instance_types_pt.nt
+bzip2 instance_types_pt.nt
+
 # add entity types to index
 mvn scala:run -Dlauncher=AddTypesToIndex "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$INDEX_CONFIG_FILE|$DBPEDIA_WORKSPACE/data/output/index-withSF"
+cp $DBPEDIA_WORKSPACE/data/output/index/similarity-thresholds.txt $DBPEDIA_WORKSPACE/data/output/index-withSF-withTypes
 
 # (optional) reduce index size by unstoring fields (attention: you won't be able to see contents of fields anymore)
-mvn scala:run -Dlauncher=CompressIndex "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$INDEX_CONFIG_FILE|10|$DBPEDIA_WORKSPACE/data/output/index-withSF-withTypes"
+# mvn scala:run -Dlauncher=CompressIndex "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$INDEX_CONFIG_FILE|10|$DBPEDIA_WORKSPACE/data/output/index-withSF-withTypes"
 set +e
 
 # train a linker (most simple is based on similarity-thresholds)

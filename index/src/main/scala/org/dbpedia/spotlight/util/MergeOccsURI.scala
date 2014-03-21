@@ -4,6 +4,7 @@ import scala.io.Source
 import java.io.{PrintStream, FileWriter}
 import org.dbpedia.spotlight.model.{SpotlightConfiguration, SurfaceForm, DBpediaResourceOccurrence}
 import scala.collection.mutable
+import org.dbpedia.spotlight.log.SpotlightLog
 
 object MergeOccsURI {
 
@@ -43,11 +44,7 @@ object MergeOccsURI {
 
     for (line <- Source.fromFile(mapToOtherOntology).getLines()) {
       val lineArray = line.split(" ")
-      //println("globo = " + lineArray(0).dropRight(1).reverse.dropRight(1).reverse)
-      //println("db = " + lineArray(2).dropRight(1).reverse.dropRight(1).reverse)
       try {
-        //println("db = " + lineArray(2).dropRight(1).reverse.dropRight(1).reverse)
-        //println("glb = " + lineArray(0).dropRight(1).reverse.dropRight(1).reverse)
         relationHash.put(lineArray(2).dropRight(1).reverse.dropRight(1).reverse, lineArray(0).dropRight(1).reverse.dropRight(1).reverse)
       } catch {
         case e: Exception => println("Skipping invalid line!")
@@ -65,11 +62,7 @@ object MergeOccsURI {
     val relationHash = new mutable.HashMap[String, String]()
     for (line <- Source.fromFile(mapToOtherOntology).getLines()) {
       val lineArray = line.split(" ")
-      //println("globo = " + lineArray(0).dropRight(1).reverse.dropRight(1).reverse)
-      //println("db = " + lineArray(2).dropRight(1).reverse.dropRight(1).reverse)
       try {
-        //println("db = " + lineArray(2).dropRight(1).reverse.dropRight(1).reverse)
-        //println("glb = " + lineArray(0).dropRight(1).reverse.dropRight(1).reverse)
         relationHash.put(lineArray(2).dropRight(1).reverse.dropRight(1).reverse, lineArray(0).dropRight(1).reverse.dropRight(1).reverse)
       } catch {
         case e: Exception => println("Skipping invalid line!")
@@ -81,7 +74,6 @@ object MergeOccsURI {
     var i = 1
     for (occ <- occSource.toList) {
       val newUriName = relationHash.getOrElse(occ.resource.uri, "")
-      //println("de boa? = " + occ.resource.uri)
       if (newUriName != "") {
         occ.resource.setUri(newUriName)
       }
@@ -104,38 +96,10 @@ object MergeOccsURI {
 
   def main(args : Array[String]) {
 
-    println("Creating a hash with the relation file to some Ontology...")
-    val relationHash = new mutable.HashMap[String, String]()
-    for (line <- Source.fromFile("E:/globo_resources/labels_pt.nt").getLines()) {
-      val lineArray = line.split(">")
-      try {
-        val currentKey = lineArray(0).reverse.dropRight(1).reverse.split('/').last
-        val currentValue = lineArray(2).dropRight(6).reverse.dropRight(2).reverse
-        //println(currentKey)
-        //println(currentValue)
-        relationHash.put(currentKey, currentValue)
-      } catch {
-        case e: Exception => println("Skipping invalid line!")
-      }
+    if (args.length == 3) {
+      mergeUsingOccs(args(0), args(1), args(2))
+    } else {
+      SpotlightLog.error(this.getClass, "Wrong number of parameters.")
     }
-    println("Done.")
-
-    println("Replacing surface forms.")
-    val sfStream = new PrintStream("E:/NamespacesData/output/pt/newSurfaceForms.tsv", "UTF-8")
-    var i = 1
-    for (line <- Source.fromFile("E:/NamespacesData/output/pt/surfaceForms-fromTitRedDis.tsv").getLines()) {
-      val lineArray = line.split('\t')
-      val newSF = relationHash.getOrElse(lineArray(0),"")
-      if (!newSF.isEmpty) {
-        if (newSF.length <= 50) {
-          sfStream.println(newSF.replaceAll("_","") + '\t' + lineArray(1))
-        }
-      } else {
-        sfStream.println(line)
-      }
-      if (i % 100000 == 0) println (i + " lines processed...")
-      i += 1
-    }
-    println("Done.")
   }
 }
