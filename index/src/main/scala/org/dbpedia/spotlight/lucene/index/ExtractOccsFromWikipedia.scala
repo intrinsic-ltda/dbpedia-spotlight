@@ -87,7 +87,5 @@ object ExtractOccsFromWikipedia {
 
         SpotlightLog.info(this.getClass, "Occurrences saved to: %s", targetFileName)
 
-        MergeOccsURI.mergeUsingOccs(config.get("org.dbpedia.spotlight.data.mapToOtherOntology"), targetFileName, targetFileName + ".FINAL")
-
     }
 }
