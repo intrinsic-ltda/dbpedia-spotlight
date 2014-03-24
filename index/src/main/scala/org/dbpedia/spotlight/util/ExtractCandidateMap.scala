@@ -415,10 +415,10 @@ object ExtractCandidateMap
         val stopWords = Source.fromFile(stopWordsFileName, "UTF-8").getLines.toSet
 
         // get concept URIs
-        //saveConceptURIs
+        saveConceptURIs
 
         // get redirects
-        //saveRedirectsTransitiveClosure
+        saveRedirectsTransitiveClosure
 
         // get "clean" surface forms, i.e. the ones obtained from TRDs
         saveSurfaceForms(stopWords)
