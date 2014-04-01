@@ -52,7 +52,7 @@ public class SpotlightConfiguration {
     public final static String DEFAULT_POLICY = "whitelist";
     public final static String DEFAULT_COREFERENCE_RESOLUTION = "true";
     @Deprecated
-    public static String DEFAULT_NAMESPACE = "http://dbpedia.org/resource/";
+    public static String DEFAULT_NAMESPACE = ""; //http://dbpedia.org/resource/";
     @Deprecated
     public static String DEFAULT_ONTOLOGY_PREFIX = "http://dbpedia.org/ontology/";
     @Deprecated
@@ -60,7 +60,7 @@ public class SpotlightConfiguration {
 
     public enum DisambiguationPolicy {Document, Occurrences, CuttingEdge, Default}
 
-    private String dbpediaResource="http://dbpedia.org/resource/";
+    private String dbpediaResource="";//http://dbpedia.org/resource/";
 
     private String dbpediaOntology="http://dbpedia.org/ontology/";
 

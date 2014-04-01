@@ -39,7 +39,7 @@ mvn scala:run -Dlauncher=MergeOccsURI "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$GLO
 
 # (recommended) sorting the occurrences by URI will speed up context merging during indexing
 echo -e "Sorting occurrences to speed up indexing...\n"
-sort -t$'\t' -k2 $DBPEDIA_WORKSPACE/data/output/occs_final.tsv >$ DBPEDIA_WORKSPACE/data/output/occs.uriSorted.tsv
+sort -t$'\t' -k2 $DBPEDIA_WORKSPACE/data/output/occs_final.tsv > $DBPEDIA_WORKSPACE/data/output/occs.uriSorted.tsv
 
 # (optional) preprocess surface forms however you want: produce acronyms, abbreviations, alternative spellings, etc.
 #            in the example below we scan paragraphs for uri->sf mappings that occurred together more than 3 times.

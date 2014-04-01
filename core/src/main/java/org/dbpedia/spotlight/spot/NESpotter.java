@@ -66,7 +66,10 @@ public class NESpotter implements Spotter {
 
         try {
             if (NESpotter.sentenceModel == null) {
+                LOG.info(NESpotter.sentenceModel);
+                LOG.info(onlpModelDir + ' ' + i18nLanguageCode + OpenNLPUtil.OpenNlpModels.SentenceModel.filename() + ' ' + OpenNLPUtil.OpenNlpModels.SentenceModel.toString());
                 NESpotter.sentenceModel  = OpenNLPUtil.loadModel(onlpModelDir, i18nLanguageCode + OpenNLPUtil.OpenNlpModels.SentenceModel.filename(), OpenNLPUtil.OpenNlpModels.SentenceModel.toString());
+                LOG.info(NESpotter.sentenceModel);
             }
             if (NESpotter.entityTypes.get(OpenNLPUtil.OpenNlpModels.person.toString()) == null) {
                 buildNameModel(onlpModelDir,OpenNLPUtil.OpenNlpModels.person.toString(),  new URI(openNLPModelsURI.get(OpenNLPUtil.OpenNlpModels.person.toString())),i18nLanguageCode);

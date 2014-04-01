@@ -26,7 +26,7 @@ object MergeOccsURI {
 
         processed += 1
 
-        if (processed % 1000 == 0) {
+        if (processed % 100000 == 0) {
           writeToFile(outputOccsFile, buffer.toString())
           buffer.clear()
           println(" %d rows processed".format(processed))
