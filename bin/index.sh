@@ -71,8 +71,8 @@ echo -e "Adding Surface Forms to index...\n"
 
 bunzip2 $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_pt.nt.bz2
 cp $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_pt.nt $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_db.nt
-cat $GLOBO_WORKSPACE/output/instance_types_globo.nt $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_db.nt > instance_types_pt.nt
-bzip2 instance_types_pt.nt
+cat $GLOBO_WORKSPACE/output/instance_types_globo.nt $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_db.nt > $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_pt.nt
+bzip2 $DBPEDIA_WORKSPACE/data/dbpedia/$LANGUAGE/instance_types_pt.nt
 
 # add entity types to index
 mvn scala:run -Dlauncher=AddTypesToIndex "-DjavaOpts.Xmx=$JAVA_XMX" "-DaddArgs=$INDEX_CONFIG_FILE|$DBPEDIA_WORKSPACE/data/output/index-withSF"
